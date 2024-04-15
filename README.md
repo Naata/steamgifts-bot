@@ -49,6 +49,8 @@ First time running executable creates sample config file, such like:
 - `wait_for_giveaway.max_second` - max amount of seconds to wait before entering giveaway
 - `wait_for_wishlist.min_second` - min amount of seconds to wait before listing wishlist and dlcs
 - `wait_for_wishlist.max_second` - max amount of seconds to wait before listing wishlist and dlcs
+
+Just paste your `PHPSESSID` and run the binary.
 ### Obtaining PHPSESSID
 1. Log to SteamGifts with your Steam account
 1. Open browsers developer tools (on Chrome its `CTRL+SHIFT+I`) 
