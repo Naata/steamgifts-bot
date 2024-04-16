@@ -2,7 +2,6 @@ package steamgifts
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -11,6 +10,10 @@ import (
 	"strconv"
 	"strings"
 )
+
+type steamGiftsRequest interface {
+	asFormData() *url.Values
+}
 
 type GivewayEnteredResponse struct {
 	RespType   string `json:"type"`
@@ -21,14 +24,18 @@ type GivewayEnteredResponse struct {
 func (r GivewayEnteredResponse) PointsInt() (int, error) {
 	p, err := strconv.Atoi(r.Points)
 	if err != nil {
-		return -1, errors.New(fmt.Sprintf("Couldn't parse giveaway entered points response: %s", err.Error()))
+		return -1, fmt.Errorf("couldn't parse giveaway entered points response: %s", err.Error())
 	}
 	return p, nil
 }
 
-var emptyResp = GivewayEnteredResponse{}
+type SyncWithSteamResponse struct {
+	SyncPrivacyRequirements bool   `json:"sync_privacy_requirements"`
+	Type                    string `json:"type"`
+	Message                 string `json:"msg"`
+}
 
-func Enter(details GivewayDetailsPage) (GivewayEnteredResponse, error) {
+func ajaxRequest(r steamGiftsRequest) ([]byte, error) {
 	client := &http.Client{
 		Jar:       newCookieJar(),
 		Transport: &http.Transport{},
@@ -37,14 +44,9 @@ func Enter(details GivewayDetailsPage) (GivewayEnteredResponse, error) {
 		},
 	}
 
-	formData := url.Values{}
-	formData.Add("do", "entry_insert")
-	formData.Add("xsrf_token", details.XsrfToken)
-	formData.Add("code", details.Code)
-
-	req, err := http.NewRequest("POST", steamGiftsUrl+"/ajax.php", strings.NewReader(formData.Encode()))
+	req, err := http.NewRequest("POST", steamGiftsUrl+"/ajax.php", strings.NewReader(r.asFormData().Encode()))
 	if err != nil {
-		return GivewayEnteredResponse{}, nil
+		return nil, err
 	}
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -53,20 +55,41 @@ func Enter(details GivewayDetailsPage) (GivewayEnteredResponse, error) {
 	resp, err := client.Do(req)
 	log.Println("Done.")
 	if err != nil {
-		return emptyResp, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+	return bodyBytes, nil
+}
+
+func EnterGiveaway(p *GivewayDetailsPage) (*GivewayEnteredResponse, error) {
+	bodyBytes, err := ajaxRequest(p)
+	if err != nil {
+		return nil, err
 	}
 	var enteredResp GivewayEnteredResponse
-	json.Unmarshal(bodyBytes, &enteredResp)
+	err = json.Unmarshal(bodyBytes, &enteredResp)
 	if err != nil {
-		return emptyResp, err
+		return nil, err
 	}
 	if enteredResp.RespType == "" {
-		return enteredResp, notLoggedIn
+		return nil, errNotLoggedIn
 	}
-	return enteredResp, nil
+	return &enteredResp, nil
+}
+
+func SyncWithSteam(p *ProfilePage) (*SyncWithSteamResponse, error) {
+	bodyBytes, err := ajaxRequest(p)
+	if err != nil {
+		return nil, err
+	}
+	var syncedResp SyncWithSteamResponse
+	err = json.Unmarshal(bodyBytes, &syncedResp)
+	if err != nil {
+		return nil, err
+	}
+	return &syncedResp, nil
 }

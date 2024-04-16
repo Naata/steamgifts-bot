@@ -33,7 +33,7 @@ func enterGiveaways(page *steamgifts.GiveawayListPage, conf *config.Config) {
 			log.Printf("Not enough points to join giveaway '%s', skipping...", details.Name)
 			continue
 		}
-		entered, err := steamgifts.Enter(details)
+		entered, err := steamgifts.EnterGiveaway(&details)
 		if err != nil {
 			log.Printf("Couldn't enter giveaway: %s", err.Error())
 			continue
@@ -46,6 +46,25 @@ func logErrors(errors []error) {
 	for _, err := range errors {
 		log.Printf("Couldn't parse giveaway details page: %s", err.Error())
 	}
+}
+
+func syncWithSteam(conf *config.Config) {
+	if !conf.SyncWithSteam {
+		log.Println("Skipping Steam sync")
+		return
+	}
+
+	log.Println("Synchronizing with Steam...")
+	page, errors := steamgifts.GetProfilePage()
+	if errors != nil {
+		logErrors(errors)
+		return
+	}
+	r, err := steamgifts.SyncWithSteam(page)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(r.Message)
 }
 
 func main() {
@@ -63,6 +82,8 @@ func main() {
 	}
 
 	for {
+		syncWithSteam(conf)
+
 		games, errors := steamgifts.GetWishlistedGames()
 		if errors != nil {
 			log.Println("Error listing wishlist page...")

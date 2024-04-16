@@ -12,7 +12,7 @@ func addUserPointsHandler(c *colly.Collector, page *SteamGiftsPage) {
 	c.OnHTML("span.nav__points", func(e *colly.HTMLElement) {
 		points, err := strconv.Atoi(e.Text)
 		if err != nil {
-			page.errors = append(page.errors, fmt.Errorf("Couldn't parse user points value: %s", err.Error()))
+			page.errors = append(page.errors, fmt.Errorf("couldn't parse user points value: %s", err.Error()))
 		}
 		page.UserPoints = points
 	})
@@ -30,9 +30,17 @@ func addGiveawayNameHandler(c *colly.Collector, page *GivewayDetailsPage) {
 	})
 }
 
-func addGiveawayXsrfTokenHandler(c *colly.Collector, page *GivewayDetailsPage) {
-	c.OnHTML("div.sidebar form input[name='xsrf_token']", func(e *colly.HTMLElement) {
-		page.XsrfToken = e.Attr("value")
+func addGiveawayXsrfTokenHandler(c *colly.Collector, page hasXsrfToken) {
+	addXsrfToken("div.sidebar form input[name='xsrf_token']", c, page)
+}
+
+func addProfileXsrfTokenHandler(c *colly.Collector, page hasXsrfToken) {
+	addXsrfToken("input[name='xsrf_token']", c, page)
+}
+
+func addXsrfToken(selector string, c *colly.Collector, page hasXsrfToken) {
+	c.OnHTML(selector, func(e *colly.HTMLElement) {
+		page.setXsrfToken(e.Attr("value"))
 	})
 }
 
@@ -48,7 +56,7 @@ func addGiveawayPointsHandler(c *colly.Collector, page *GivewayDetailsPage) {
 		s = strings.Replace(s, "P)", "", 1)
 		points, err := strconv.Atoi(s)
 		if err != nil {
-			page.errors = append(page.errors, fmt.Errorf("Couldn't parse giveaways points value: %s", err.Error()))
+			page.errors = append(page.errors, fmt.Errorf("couldn't parse giveaways points value: %s", err.Error()))
 		}
 		page.Points = points
 	})

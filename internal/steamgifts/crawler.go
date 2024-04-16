@@ -58,11 +58,25 @@ func GetGiveawayDetails(giveawayUrl string) (GivewayDetailsPage, []error) {
 	c.Visit(fullUrl)
 	if page.XsrfToken == "" && !page.NotEnoughPoints {
 		errors := make([]error, 1)
-		errors[0] = notLoggedIn
+		errors[0] = errNotLoggedIn
 		return page, errors
 	}
 	if len(page.errors) != 0 {
 		return page, page.errors
 	}
 	return page, nil
+}
+
+func GetProfilePage() (*ProfilePage, []error) {
+	fullUrl := steamGiftsUrl + "/account/settings/profile"
+	page := ProfilePage{}
+	c := collector()
+	addUserPointsHandler(c, &page.SteamGiftsPage)
+	addProfileXsrfTokenHandler(c, &page)
+	c.Visit(fullUrl)
+	if len(page.errors) != 0 {
+		return nil, page.errors
+	}
+
+	return &page, nil
 }

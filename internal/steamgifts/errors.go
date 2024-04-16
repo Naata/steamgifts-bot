@@ -2,4 +2,4 @@ package steamgifts
 
 import "errors"
 
-var notLoggedIn = errors.New("NOT LOGGED IN")
+var errNotLoggedIn = errors.New("NOT LOGGED IN")
