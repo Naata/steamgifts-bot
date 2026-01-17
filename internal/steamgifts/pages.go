@@ -5,6 +5,11 @@ import (
 	"net/url"
 )
 
+type giveawayPage struct {
+	name string
+	url  string
+}
+
 func toJsonString(i interface{}) string {
 	data, _ := json.MarshalIndent(i, "", "  ")
 	return string(data)
@@ -59,6 +64,7 @@ func (gd *GivewayDetailsPage) asFormData() *url.Values {
 }
 
 type GiveawayListPage struct {
+	Name  string
 	Hrefs []string
 	SteamGiftsPage
 }
@@ -82,3 +88,5 @@ func (p *ProfilePage) asFormData() *url.Values {
 	formData.Add("xsrf_token", p.xsrfToken())
 	return &formData
 }
+
+type GiveawayListPageProvider func() (*GiveawayListPage, []error)

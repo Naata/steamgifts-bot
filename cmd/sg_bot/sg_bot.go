@@ -6,6 +6,7 @@ import (
 	"os"
 	"sg_bot/internal/config"
 	"sg_bot/internal/steamgifts"
+	"slices"
 	"time"
 )
 
@@ -14,7 +15,24 @@ func wait(minMax config.MinMaxSeconds) (int, func()) {
 	return seconds, func() { time.Sleep(time.Duration(seconds) * time.Second) }
 }
 
-func enterGiveaways(page *steamgifts.GiveawayListPage, conf *config.Config) {
+func enterGiveaways(pageProvider steamgifts.GiveawayListPageProvider, conf *config.Config) {
+	page, errors := pageProvider()
+	if !slices.Contains(conf.PagesToScan, page.Name) {
+		log.Printf("Config doesn't request scan of page %s, skipping...", page.Name)
+		return
+	}
+
+	if errors != nil {
+		log.Printf("Error listing %s page...", page.Name)
+		logErrors(errors)
+		return
+	}
+
+	if len(page.Hrefs) == 0 {
+		log.Printf("All %s giveaways entered, nothing to do...", page.Name)
+		return
+	}
+
 	log.Printf("Entering %d giveaways: %s", len(page.Hrefs), page.Hrefs)
 	for _, href := range page.Hrefs {
 		seconds, sleep := wait(conf.WaitForGiveaway)
@@ -84,32 +102,13 @@ func main() {
 	for {
 		syncWithSteam(conf)
 
-		games, errors := steamgifts.GetWishlistedGames()
-		if errors != nil {
-			log.Println("Error listing wishlist page...")
-			logErrors(errors)
-			continue
-		}
-		if len(games.Hrefs) == 0 {
-			log.Println("All wishlisted giveaways entered, nothing to do...")
-		} else {
-			enterGiveaways(&games, conf)
-		}
-
-		dlcs, errors := steamgifts.GetDLCs()
-		if errors != nil {
-			log.Println("Error listing dlcs page...")
-			logErrors(errors)
-			continue
-		}
-		if len(dlcs.Hrefs) == 0 {
-			log.Println("All dlcs entered, nothing to do...")
-		} else {
-			enterGiveaways(&dlcs, conf)
-		}
+		enterGiveaways(steamgifts.GetWishlistedGames(), conf)
+		enterGiveaways(steamgifts.GetDLCs(), conf)
+		enterGiveaways(steamgifts.GetMultipleCopies(), conf)
+		enterGiveaways(steamgifts.GetRecommended(), conf)
 
 		seconds, sleep := wait(conf.WaitForWishlist)
-		log.Printf("Waiting %d seconds before accessing wishlist...", seconds)
+		log.Printf("Waiting %d seconds before accessing steamgifts...", seconds)
 		sleep()
 	}
 }

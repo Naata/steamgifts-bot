@@ -42,7 +42,13 @@ First time running executable creates sample config file, such like:
     "min_seconds": 600,
     "max_seconds": 1800
   },
-  "sync_with_steam_before_listing": true
+  "sync_with_steam_before_listing": true,
+  "pages_to_scan": [
+    "dlc",
+    "wishlist",
+    "multiplecopies",
+    "recommended"
+  ]
 }
 ```
 - `phpsessid` - your PHPSESSID obtained from requests to SteamGifts pages
@@ -51,6 +57,7 @@ First time running executable creates sample config file, such like:
 - `wait_for_wishlist.min_second` - min amount of seconds to wait before listing wishlist and dlcs
 - `wait_for_wishlist.max_second` - max amount of seconds to wait before listing wishlist and dlcs
 - `sync_with_steam_before_listing` - sync with steam each time before accessing steamgifts wishlist
+- `pages_to_scan` - list of pages to scan, defaults to [ "dlc", "wishlist", "multiplecopies", "recommended" ]
 
 Just paste your `PHPSESSID` and run the binary.
 ### Obtaining PHPSESSID

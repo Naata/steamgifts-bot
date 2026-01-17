@@ -25,24 +25,40 @@ func PhpSessIdValid() bool {
 	return loggedIn
 }
 
-func scrapeGameListPage(sgpage string) (GiveawayListPage, []error) {
+func scrapeGameListPage(sgpage *giveawayPage) (*GiveawayListPage, []error) {
 	c := collector()
-	page := GiveawayListPage{}
+	page := GiveawayListPage{Name: sgpage.name}
 	addWishlistHrefHandler(c, &page)
 	addUserPointsHandler(c, &page.SteamGiftsPage)
-	c.Visit(steamGiftsUrl + sgpage)
+	c.Visit(steamGiftsUrl + sgpage.url)
 	if len(page.errors) != 0 {
-		return page, page.errors
+		return &page, page.errors
 	}
-	return page, nil
+	return &page, nil
 }
 
-func GetDLCs() (GiveawayListPage, []error) {
-	return scrapeGameListPage("/giveaways/search?dlc=true")
+func GetDLCs() GiveawayListPageProvider {
+	return func() (*GiveawayListPage, []error) {
+		return scrapeGameListPage(&giveawayPage{url: "/giveaways/search?dlc=true", name: "dlc"})
+	}
 }
 
-func GetWishlistedGames() (GiveawayListPage, []error) {
-	return scrapeGameListPage("/giveaways/search?type=wishlist")
+func GetWishlistedGames() GiveawayListPageProvider {
+	return func() (*GiveawayListPage, []error) {
+		return scrapeGameListPage(&giveawayPage{url: "/giveaways/search?type=wishlist", name: "wishlist"})
+	}
+}
+
+func GetMultipleCopies() GiveawayListPageProvider {
+	return func() (*GiveawayListPage, []error) {
+		return scrapeGameListPage(&giveawayPage{url: "/giveaways/search?copy_min=2", name: "multiplecopies"})
+	}
+}
+
+func GetRecommended() GiveawayListPageProvider {
+	return func() (*GiveawayListPage, []error) {
+		return scrapeGameListPage(&giveawayPage{url: "/giveaways/search?type=recommended", name: "recommended"})
+	}
 }
 
 func GetGiveawayDetails(giveawayUrl string) (GivewayDetailsPage, []error) {

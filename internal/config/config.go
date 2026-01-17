@@ -20,6 +20,7 @@ type Config struct {
 	WaitForGiveaway MinMaxSeconds `json:"wait_for_giveaway"`
 	WaitForWishlist MinMaxSeconds `json:"wait_for_wishlist"`
 	SyncWithSteam   bool          `json:"sync_with_steam_before_listing"`
+	PagesToScan     []string      `json:"pages_to_scan"`
 }
 
 func (c Config) String() string {
@@ -28,7 +29,13 @@ func (c Config) String() string {
 }
 
 func saveDefaultConfig() {
-	config := Config{PhpSessId: "put_php_session_id_here", WaitForGiveaway: MinMaxSeconds{Min: 5, Max: 20}, WaitForWishlist: MinMaxSeconds{Min: 10 * 60, Max: 30 * 60}, SyncWithSteam: true}
+	config := Config{
+		PhpSessId:       "put_php_session_id_here",
+		WaitForGiveaway: MinMaxSeconds{Min: 5, Max: 20},
+		WaitForWishlist: MinMaxSeconds{Min: 10 * 60, Max: 30 * 60},
+		SyncWithSteam:   true,
+		PagesToScan:     []string{"dlc", "wishlist", "multiplecopies", "recommended"},
+	}
 	json, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		log.Fatalf(err.Error())
