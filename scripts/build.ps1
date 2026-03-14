@@ -12,4 +12,6 @@ $Env:GOOS = "linux"; $Env:GOARM = "5";$Env:GOARCH="arm";go build -o $dist/sg_bot
 
 $Env:GOOS = "windows";$Env:GOARCH="amd64";go build -o $dist/sg_bot_win.exe
 
+$Env:GOOS = "linux";$Env:GOARCH="amd64";go build -o $dist/sg_bot_linux
+
 Set-Location $scripts

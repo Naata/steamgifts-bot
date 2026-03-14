@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"math/rand/v2"
-	"os"
 	"sg_bot/internal/config"
 	"sg_bot/internal/steamgifts"
 	"slices"
@@ -86,12 +85,7 @@ func syncWithSteam(conf *config.Config) {
 }
 
 func main() {
-	conf, exists := config.GetConfig()
-	if !exists {
-		log.Println("User config not fund, default config created.")
-		os.Exit(1)
-	}
-
+	conf, _ := config.GetConfigFromEnv()
 	log.Printf("User config: %s", conf)
 
 	steamgifts.SetSessionId(conf.PhpSessId)
@@ -107,7 +101,7 @@ func main() {
 		enterGiveaways(steamgifts.GetMultipleCopies(), conf)
 		enterGiveaways(steamgifts.GetRecommended(), conf)
 
-		seconds, sleep := wait(conf.WaitForWishlist)
+		seconds, sleep := wait(conf.WaitBetweenScans)
 		log.Printf("Waiting %d seconds before accessing steamgifts...", seconds)
 		sleep()
 	}

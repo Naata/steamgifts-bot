@@ -6,9 +6,18 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 )
 
-const filename = "config.json"
+const (
+	filename                  = "config.json"
+	PhpSessId          EnvKey = "SGBOT_PHPSESSID"
+	WaitForGiveawayMax EnvKey = "SGBOT_WAITFORGIVEAWAYMAX"
+	WaitForGiveawayMin EnvKey = "SGBOT_WAITFORGIVEAWAYMIN"
+	SyncWithSteam      EnvKey = "SGBOT_SYNCWITHSTEAM"
+	PagesToScan        EnvKey = "SGBOT_PAGESTOSCAN"
+)
 
 type MinMaxSeconds struct {
 	Min int `json:"min_seconds"`
@@ -16,11 +25,11 @@ type MinMaxSeconds struct {
 }
 
 type Config struct {
-	PhpSessId       string        `json:"phpsessid"`
-	WaitForGiveaway MinMaxSeconds `json:"wait_for_giveaway"`
-	WaitForWishlist MinMaxSeconds `json:"wait_for_wishlist"`
-	SyncWithSteam   bool          `json:"sync_with_steam_before_listing"`
-	PagesToScan     []string      `json:"pages_to_scan"`
+	PhpSessId        string        `json:"phpsessid"`
+	WaitForGiveaway  MinMaxSeconds `json:"wait_for_giveaway"`
+	WaitBetweenScans MinMaxSeconds `json:"wait_between_scans"`
+	SyncWithSteam    bool          `json:"sync_with_steam_before_listing"`
+	PagesToScan      []string      `json:"pages_to_scan"`
 }
 
 func (c Config) String() string {
@@ -28,14 +37,18 @@ func (c Config) String() string {
 	return string(data)
 }
 
-func saveDefaultConfig() {
-	config := Config{
-		PhpSessId:       "put_php_session_id_here",
-		WaitForGiveaway: MinMaxSeconds{Min: 5, Max: 20},
-		WaitForWishlist: MinMaxSeconds{Min: 10 * 60, Max: 30 * 60},
-		SyncWithSteam:   true,
-		PagesToScan:     []string{"dlc", "wishlist", "multiplecopies", "recommended"},
+func defaultConfig() Config {
+	return Config{
+		PhpSessId:        "",
+		WaitForGiveaway:  MinMaxSeconds{Min: 5, Max: 20},
+		WaitBetweenScans: MinMaxSeconds{Min: 5 * 60, Max: 15 * 60},
+		SyncWithSteam:    true,
+		PagesToScan:      []string{"dlc", "wishlist", "multiplecopies", "recommended"},
 	}
+}
+
+func saveDefaultConfig() {
+	config := defaultConfig()
 	json, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -44,6 +57,45 @@ func saveDefaultConfig() {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+}
+
+func GetConfigFromEnv() (*Config, bool) {
+	config := defaultConfig()
+
+	if !PhpSessId.IsSet() {
+		panic("PHPSESSID must be set!")
+	}
+	config.PhpSessId = PhpSessId.GetValue()
+
+	if WaitForGiveawayMax.IsSet() {
+		val, err := strconv.Atoi(WaitForGiveawayMax.GetValue())
+		if err != nil {
+			panic(err)
+		}
+		config.WaitForGiveaway.Max = val
+	}
+
+	if WaitForGiveawayMin.IsSet() {
+		val, err := strconv.Atoi(WaitForGiveawayMin.GetValue())
+		if err != nil {
+			panic(err)
+		}
+		config.WaitForGiveaway.Min = val
+	}
+
+	if SyncWithSteam.IsSet() {
+		val, err := strconv.ParseBool(SyncWithSteam.GetValue())
+		if err != nil {
+			panic(err)
+		}
+		config.SyncWithSteam = val
+	}
+
+	if PagesToScan.IsSet() {
+		config.PagesToScan = strings.Split(PagesToScan.GetValue(), ",")
+	}
+
+	return &config, true
 }
 
 func GetConfig() (*Config, bool) {
