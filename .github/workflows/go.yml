@@ -26,3 +26,11 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+          name: sgbot-binaries
+          path: ./cmd/sg_bot/sg_bot
+          retention-days: 1
+          compression-level: 0
