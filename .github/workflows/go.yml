@@ -23,7 +23,9 @@ jobs:
 
     - name: Build
       id: build
-      run: go build -v ./...
+      run: |
+        go build -v ./...
+        ls -R ./cmd
 
     - name: Test
       id: test
