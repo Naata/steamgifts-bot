@@ -31,6 +31,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
           name: sgbot-binaries
-          path: ./cmd/sg_bot/sg_bot
+          path: ./sg_bot/cmd/sg_bot/sg_bot
           retention-days: 1
           compression-level: 0
