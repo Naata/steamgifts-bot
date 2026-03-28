@@ -5,31 +5,53 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.26'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
 
-    - name: Build
-      run: |
-        cd ./cmd/sg_bot
-        go build
+      - name: Build
+        run: |
+          cd ./cmd/sg_bot
+          go build
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v5
-      with:
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
           name: sgbot-binaries
           path: ./cmd/sg_bot/sg_bot
           retention-days: 1
           compression-level: 0
+
+  publish:
+    name: Publish docker imaege
+    runs-on: ubuntu-latest
+
+    needs:
+      - build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download binaries
+        uses: actions/download-artifact@v5
+        with:
+          name: sgbot-binaries
+          path: ./docker
+
+      - name: Build docker image
+        run: |
+          ls -R 
+          cd ./docker
+          docker build -t naata/sg_bot:latest .
