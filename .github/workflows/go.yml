@@ -56,5 +56,5 @@ jobs:
 
       - name: Publish docker image
         run: |
-          echo ${{ secrets.DEPLOY_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+          echo ${{ secrets.DEPLOY_TOKEN }} | docker login ghcr.io -u $USERNAME --password-stdin
           docker push ghcr.io/Naata/sg_bot --all-tags
