@@ -1,6 +1,6 @@
 FROM alpine:3.23.3
 
-COPY ./sgbot ./sgbot
-RUN chmod +x ./sgbot
+COPY ./sg_bot ./sg_bot
+RUN chmod +x ./sg_bot
 
-CMD ["sgbot"]
+CMD ["sg_bot"]
