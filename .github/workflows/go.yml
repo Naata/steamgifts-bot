@@ -54,8 +54,12 @@ jobs:
           cd ./docker
           docker build -t ghcr.io/naata/sg_bot:latest .
 
-      - name: Login to github registry
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u $USERNAME ---password-stdin
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish docker image
         run:  docker push ghcr.io/naata/sg_bot --all-tags
