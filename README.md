@@ -49,3 +49,18 @@ Just paste your `PHPSESSID` and run the binary.
 
 Example screenshot:
 ![phpsessid](docs/readme/phpsessid.png)
+
+## docker-compose
+```yaml
+services:
+  sgbot:
+    image: naata/sg_bot:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 64M
+    environment:
+      SGBOT_PHPSESSID: <php_session_id>
+    restart: unless-stopped
+```
