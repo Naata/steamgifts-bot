@@ -52,14 +52,14 @@ jobs:
       - name: Build docker image
         run: |
           cd ./docker
-          docker build -t ghcr.io/naata/sg_bot:latest .
+          docker build -t naata/sg_bot:latest .
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Publish docker image
-        run:  docker push ghcr.io/naata/sg_bot --all-tags
+        run:  docker push naata/sg_bot --all-tags
