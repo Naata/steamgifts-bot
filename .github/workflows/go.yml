@@ -52,9 +52,9 @@ jobs:
       - name: Build docker image
         run: |
           cd ./docker
-          docker build -t Naata/sg_bot:latest .
+          docker build -t ghcr.io/Naata/sg_bot:latest .
 
       - name: Publish docker image
         run: |
-          echo ${{ secrets.DEPLOY_TOKEN }} | docker login ghcr.io -u $USERNAME --password-stdin
+          docker login ghcr.io -u $USERNAME --password ${{ secrets.DEPLOY_TOKEN }}
           docker push ghcr.io/Naata/sg_bot --all-tags
